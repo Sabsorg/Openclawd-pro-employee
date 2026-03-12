@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import shlex
 from typing import Any
 
 from openclawd_employee.tools.base import Tool
