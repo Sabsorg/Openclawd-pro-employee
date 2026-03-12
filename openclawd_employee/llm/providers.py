@@ -133,6 +133,18 @@ class AnthropicProvider(LLMProvider):
             else:
                 conversation.append(msg)
 
+        # Anthropic's Messages API does not support messages with role "tool".
+        # The agent loop may record tool outputs that way; since this provider
+        # does not yet translate them into Anthropic tool_result blocks, fail
+        # fast with a clear error instead of sending an invalid request.
+        for msg in conversation:
+            if msg.get("role") == "tool":
+                raise ValueError(
+                    "AnthropicProvider.chat() received a message with role 'tool', "
+                    "which is not supported by Anthropic's Messages API. Tool results "
+                    "must be represented as tool_result content blocks; this provider "
+                    "does not yet implement that translation."
+                )
         # Build Anthropic-style tool definitions.
         ant_tools: list[dict[str, Any]] = []
         if tools:
