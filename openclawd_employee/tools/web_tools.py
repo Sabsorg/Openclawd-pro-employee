@@ -23,7 +23,7 @@ _BLOCKED_NETWORKS = [
 
 def _is_blocked_host(hostname: str) -> bool:
     """Return True if *hostname* resolves to a private/loopback address."""
-    if hostname.lower() in {"localhost", ""}:
+    if not hostname or hostname.lower() == "localhost":
         return True
     try:
         addr = ipaddress.ip_address(hostname)

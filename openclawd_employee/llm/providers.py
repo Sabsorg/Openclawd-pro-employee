@@ -119,6 +119,8 @@ class AnthropicProvider(LLMProvider):
                         input_obj = json.loads(args_raw) if isinstance(args_raw, str) else args_raw
                     except json.JSONDecodeError:
                         input_obj = {}
+                    if not isinstance(input_obj, dict):
+                        input_obj = {}
                     blocks.append(
                         {
                             "type": "tool_use",
