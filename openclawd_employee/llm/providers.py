@@ -163,6 +163,7 @@ class AnthropicProvider(LLMProvider):
             "max_tokens": max_tokens,
             "messages": conversation,
             "temperature": temperature,
+            "temperature": temperature,
         }
         if system_text.strip():
             body["system"] = system_text.strip()
