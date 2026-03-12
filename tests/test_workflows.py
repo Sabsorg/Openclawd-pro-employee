@@ -52,3 +52,10 @@ async def test_workflow_skipped_on_unmet_deps() -> None:
     wf.add_step("step_a", _greet, depends_on=["missing_step"])
     results = await wf.run()
     assert wf.steps[0].status == StepStatus.SKIPPED
+
+
+def test_workflow_duplicate_step_raises() -> None:
+    wf = Workflow("test")
+    wf.add_step("greet", _greet)
+    with pytest.raises(ValueError, match="Duplicate step name"):
+        wf.add_step("greet", _greet)

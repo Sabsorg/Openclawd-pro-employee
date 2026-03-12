@@ -43,9 +43,20 @@ class Memory:
         """Return the full conversation history."""
         return list(self._conversation)
 
-    def to_messages(self) -> list[dict[str, str]]:
-        """Serialise conversation history to the OpenAI message format."""
-        return [{"role": e.role, "content": e.content} for e in self._conversation]
+    def to_messages(self) -> list[dict[str, Any]]:
+        """Serialise conversation history to the OpenAI message format.
+
+        Metadata such as ``tool_call_id`` (for tool-result messages) and
+        ``tool_calls`` (for assistant messages that invoked tools) is
+        included so the resulting list is valid for the OpenAI chat API.
+        """
+        messages: list[dict[str, Any]] = []
+        for e in self._conversation:
+            msg: dict[str, Any] = {"role": e.role, "content": e.content}
+            if e.metadata:
+                msg.update(e.metadata)
+            messages.append(msg)
+        return messages
 
     # -- Facts (long-term) memory ----------------------------------------
 

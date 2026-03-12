@@ -64,6 +64,12 @@ class TestToolRegistry:
     def test_parse_arguments_invalid(self) -> None:
         assert ToolRegistry.parse_arguments("not json") == {}
 
+    def test_parse_arguments_non_dict_json(self) -> None:
+        """Valid JSON that is not an object should return empty dict."""
+        assert ToolRegistry.parse_arguments("[]") == {}
+        assert ToolRegistry.parse_arguments('"text"') == {}
+        assert ToolRegistry.parse_arguments("null") == {}
+
 
 @pytest.mark.asyncio
 async def test_dummy_tool_run() -> None:

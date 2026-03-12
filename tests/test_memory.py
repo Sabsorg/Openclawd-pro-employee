@@ -22,6 +22,26 @@ class TestMemory:
         msgs = mem.to_messages()
         assert msgs == [{"role": "user", "content": "ping"}]
 
+    def test_to_messages_with_tool_call_id(self) -> None:
+        """tool-result messages must include tool_call_id."""
+        mem = Memory()
+        mem.add("tool", "result text", tool_call_id="call_abc")
+        msgs = mem.to_messages()
+        assert len(msgs) == 1
+        assert msgs[0]["role"] == "tool"
+        assert msgs[0]["tool_call_id"] == "call_abc"
+        assert msgs[0]["content"] == "result text"
+
+    def test_to_messages_with_tool_calls(self) -> None:
+        """assistant messages that triggered tools must include tool_calls."""
+        tc = [{"id": "call_1", "function": {"name": "echo", "arguments": "{}"}}]
+        mem = Memory()
+        mem.add("assistant", "", tool_calls=tc)
+        msgs = mem.to_messages()
+        assert len(msgs) == 1
+        assert msgs[0]["role"] == "assistant"
+        assert msgs[0]["tool_calls"] == tc
+
     def test_store_and_get_fact(self) -> None:
         mem = Memory()
         mem.store_fact("project", "openclawd")

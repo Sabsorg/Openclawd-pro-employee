@@ -22,7 +22,9 @@ class ShellTool(Tool):
     def description(self) -> str:
         return (
             "Run a shell command and return stdout/stderr. "
-            "Use for build, test, git, or any CLI task."
+            "Use for build, test, git, or any CLI task. "
+            "WARNING: executes via the system shell — only enable in "
+            "trusted environments to avoid command-injection risks."
         )
 
     @property

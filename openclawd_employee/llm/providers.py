@@ -85,12 +85,49 @@ class AnthropicProvider(LLMProvider):
     ) -> dict[str, Any]:
         import httpx
 
-        # Separate the system prompt from conversation messages.
+        # Separate the system prompt from conversation messages and
+        # translate tool-result messages into Anthropic's format.
         system_text = ""
-        conversation: list[dict[str, str]] = []
+        conversation: list[dict[str, Any]] = []
         for msg in messages:
             if msg["role"] == "system":
                 system_text += msg["content"] + "\n"
+            elif msg["role"] == "tool":
+                # Anthropic requires tool results as user messages with
+                # ``tool_result`` content blocks.
+                conversation.append(
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": msg.get("tool_call_id", ""),
+                                "content": msg.get("content", ""),
+                            }
+                        ],
+                    }
+                )
+            elif msg["role"] == "assistant" and msg.get("tool_calls"):
+                # Re-encode assistant tool-use turns into Anthropic blocks.
+                blocks: list[dict[str, Any]] = []
+                if msg.get("content"):
+                    blocks.append({"type": "text", "text": msg["content"]})
+                for tc in msg["tool_calls"]:
+                    fn = tc.get("function", {})
+                    args_raw = fn.get("arguments", "{}")
+                    try:
+                        input_obj = json.loads(args_raw) if isinstance(args_raw, str) else args_raw
+                    except json.JSONDecodeError:
+                        input_obj = {}
+                    blocks.append(
+                        {
+                            "type": "tool_use",
+                            "id": tc.get("id", ""),
+                            "name": fn.get("name", ""),
+                            "input": input_obj,
+                        }
+                    )
+                conversation.append({"role": "assistant", "content": blocks})
             else:
                 conversation.append(msg)
 
@@ -111,6 +148,7 @@ class AnthropicProvider(LLMProvider):
             "model": self._model,
             "max_tokens": max_tokens,
             "messages": conversation,
+            "temperature": temperature,
         }
         if system_text.strip():
             body["system"] = system_text.strip()

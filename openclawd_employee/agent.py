@@ -100,7 +100,6 @@ class Agent:
 
             content: str = response.get("content", "")
             tool_calls: list[dict[str, Any]] = response.get("tool_calls", [])
-            finish: str = response.get("finish_reason", "")
 
             if not tool_calls:
                 # The model produced a final textual answer.

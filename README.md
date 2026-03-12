@@ -43,28 +43,30 @@ It ships with a set of built-in tools, a workflow engine with dependency managem
 └────────────────────────┬─────────────────────────┘
                          │
                    ┌─────▼─────┐
-                   │   Agent   │  ReAct loop
+                   │   Agent   │  ReAct loop (LLM tool-calling)
                    └─────┬─────┘
-            ┌────────────┼────────────┐
-            │            │            │
-      ┌─────▼─────┐ ┌───▼────┐ ┌────▼─────┐
-      │  Planner  │ │ Memory │ │ Executor │
-      └───────────┘ └────────┘ └────┬─────┘
-                                    │
-                            ┌───────▼───────┐
-                            │ Tool Registry │
-                            └───────┬───────┘
-               ┌────────┬───────┬───┴────┬──────────┐
-               │        │       │        │          │
-          read_file write_file shell http_request python_exec
+                    ┌────┴────┐
+                    │         │
+              ┌─────▼───┐ ┌──▼───────┐
+              │ Memory  │ │ Executor │
+              └─────────┘ └────┬─────┘
+                               │
+                       ┌───────▼───────┐
+                       │ Tool Registry │
+                       └───────┬───────┘
+              ┌────────┬───────┼───────┬──────────┐
+              │        │       │       │          │
+         read_file write_file shell http_request python_exec
+
+Optional utilities:  Planner (create_plan)  ·  Workflow engine
 ```
 
 ### Key Modules
 
 | Module | Purpose |
 |---|---|
-| `agent.py` | Core ReAct loop — orchestrates planning, tool use, and observation |
-| `planner.py` | Asks the LLM to decompose a goal into discrete steps |
+| `agent.py` | Core ReAct loop — uses LLM tool-calling to act and observe in a loop |
+| `planner.py` | Optional utility — asks the LLM to decompose a goal into discrete steps |
 | `executor.py` | Dispatches tool calls and collects results |
 | `memory.py` | Conversation history (short-term) and fact store (long-term) |
 | `config.py` | Dataclass-based configuration for the agent and LLM provider |

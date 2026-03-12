@@ -45,7 +45,12 @@ class Workflow:
         args: dict[str, Any] | None = None,
         depends_on: list[str] | None = None,
     ) -> None:
-        """Register a step in the workflow."""
+        """Register a step in the workflow.
+
+        Raises ``ValueError`` if a step with the same *name* already exists.
+        """
+        if name in self._steps:
+            raise ValueError(f"Duplicate step name: {name!r}")
         self._steps[name] = WorkflowStep(
             name=name,
             handler=handler,

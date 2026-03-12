@@ -2,9 +2,35 @@
 
 from __future__ import annotations
 
+import ipaddress
 from typing import Any
+from urllib.parse import urlparse
 
 from openclawd_employee.tools.base import Tool
+
+# IP ranges that are blocked by default to prevent SSRF.
+_BLOCKED_NETWORKS = [
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("169.254.0.0/16"),
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fc00::/7"),
+    ipaddress.ip_network("fe80::/10"),
+]
+
+
+def _is_blocked_host(hostname: str) -> bool:
+    """Return True if *hostname* resolves to a private/loopback address."""
+    if hostname.lower() in {"localhost", ""}:
+        return True
+    try:
+        addr = ipaddress.ip_address(hostname)
+        return any(addr in net for net in _BLOCKED_NETWORKS)
+    except ValueError:
+        # Not a literal IP — allow DNS hostnames through.
+        return False
 
 
 class HttpRequestTool(Tool):
@@ -53,6 +79,12 @@ class HttpRequestTool(Tool):
         method: str = kwargs.get("method", "GET").upper()
         body: str = kwargs.get("body", "")
         headers: dict[str, str] = kwargs.get("headers", {})
+
+        # SSRF guard: block requests to private/loopback addresses.
+        parsed_url = urlparse(url)
+        hostname = parsed_url.hostname or ""
+        if _is_blocked_host(hostname):
+            return f"Blocked: requests to private/loopback addresses are not allowed ({hostname})"
 
         try:
             async with httpx.AsyncClient(timeout=30) as client:

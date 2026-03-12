@@ -26,6 +26,23 @@ class EchoTool(Tool):
         return kwargs.get("text", "")
 
 
+class FailingTool(Tool):
+    @property
+    def name(self) -> str:
+        return "fail"
+
+    @property
+    def description(self) -> str:
+        return "Always raises."
+
+    @property
+    def parameters(self) -> dict[str, Any]:
+        return {"type": "object", "properties": {}}
+
+    async def run(self, **kwargs: Any) -> str:
+        raise RuntimeError("boom")
+
+
 @pytest.mark.asyncio
 async def test_execute_tool_calls() -> None:
     registry = ToolRegistry()
@@ -53,3 +70,20 @@ async def test_execute_unknown_tool() -> None:
     ]
     results = await execute_tool_calls(calls, registry)
     assert "Unknown tool" in results[0]["content"]
+
+
+@pytest.mark.asyncio
+async def test_execute_tool_exception_caught() -> None:
+    """A tool raising an exception should not crash the executor."""
+    registry = ToolRegistry()
+    registry.register(FailingTool())
+    calls = [
+        {
+            "id": "call_3",
+            "function": {"name": "fail", "arguments": "{}"},
+        }
+    ]
+    results = await execute_tool_calls(calls, registry)
+    assert len(results) == 1
+    assert "failed with error" in results[0]["content"]
+    assert "boom" in results[0]["content"]

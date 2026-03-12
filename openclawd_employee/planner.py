@@ -55,8 +55,13 @@ async def create_plan(
     except json.JSONDecodeError:
         return [Step(description="Execute goal directly", tool="respond", args={"text": raw})]
 
+    if not isinstance(items, list):
+        return [Step(description="Execute goal directly", tool="respond", args={"text": raw})]
+
     steps: list[Step] = []
     for item in items:
+        if not isinstance(item, dict):
+            continue
         steps.append(
             Step(
                 description=item.get("description", ""),

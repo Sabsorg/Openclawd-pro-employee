@@ -20,7 +20,8 @@ class PythonExecTool(Tool):
     def description(self) -> str:
         return (
             "Execute a Python code snippet in an isolated namespace "
-            "and return its printed output."
+            "and return its printed output. WARNING: code runs in-process "
+            "without a sandbox — only enable in trusted environments."
         )
 
     @property

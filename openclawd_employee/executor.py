@@ -26,7 +26,10 @@ async def execute_tool_calls(
         if tool is None:
             output = f"Unknown tool: {fn_name}"
         else:
-            output = await tool.run(**parsed)
+            try:
+                output = await tool.run(**parsed)
+            except Exception as exc:  # noqa: BLE001
+                output = f"Tool {fn_name} failed with error: {exc!r}"
 
         results.append(
             {

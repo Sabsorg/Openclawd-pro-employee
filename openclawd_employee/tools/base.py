@@ -74,6 +74,9 @@ class ToolRegistry:
         if isinstance(raw, dict):
             return raw
         try:
-            return json.loads(raw)
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict):
+                return parsed
+            return {}
         except (json.JSONDecodeError, TypeError):
             return {}
