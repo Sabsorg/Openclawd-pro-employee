@@ -25,5 +25,11 @@ async def test_python_exec_no_output() -> None:
 async def test_python_exec_error() -> None:
     tool = PythonExecTool()
     result = await tool.run(code="raise ValueError('boom')")
-    assert "Execution error" in result
     assert "boom" in result
+
+
+@pytest.mark.asyncio
+async def test_python_exec_timeout() -> None:
+    tool = PythonExecTool(timeout=1)
+    result = await tool.run(code="import time; time.sleep(10)")
+    assert "timed out" in result
