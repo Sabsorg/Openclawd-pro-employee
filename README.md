@@ -241,7 +241,7 @@ pip install -e ".[dev]"
 python -m pytest tests/ -v
 ```
 
-All 36 tests cover the core modules: tools, registry, memory, executor, workflows, config, and agent initialization.
+All 52 tests cover the core modules: tools, registry, memory, executor, workflows, config, and agent initialization.
 
 ---
 
